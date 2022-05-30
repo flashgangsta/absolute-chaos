@@ -1,0 +1,26 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+html body {
+  position: absolute;
+}
+html body * {
+  box-sizing: border-box;
+}
+html body content-el {
+  background-color: antiquewhite;
+  overflow: hidden;
+}
+html body cards-el {
+  background-color: beige;
+}
+html body card-el {
+  background-color: #a5316c;
+}
+html body message-el {
+  background-color: #dcc08d;
+  border-radius: 15px;
+}
+/*# sourceMappingURL=styles.css.map */
