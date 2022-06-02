@@ -24,8 +24,8 @@ export class Content extends DisplayObj {
         this.#messagesViewPort = new Rectangle(0, 0, this.width, this.height);
     }
 
-    fillMessages() {
-        this.#elMessages.fillMessages(this.#messagesViewPort, this.#elCards.getGrid())
+    init() {
+        this.#elMessages.init(this.#messagesViewPort, this.#elCards.getGrid())
     }
 }
 

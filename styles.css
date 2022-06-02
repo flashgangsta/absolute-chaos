@@ -19,8 +19,11 @@ html body cards-el {
 html body card-el {
   background-color: #a5316c;
 }
+html body messages-el {
+  content-visibility: auto;
+}
 html body message-el {
   background-color: #dcc08d;
-  border-radius: 15px;
+  border-radius: 10px;
 }
 /*# sourceMappingURL=styles.css.map */

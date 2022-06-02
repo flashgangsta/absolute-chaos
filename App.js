@@ -18,7 +18,7 @@ export class App {
 
         window.addEventListener("resize", this.#onWindowResize.bind(this));
         this.#onWindowResize();
-        this.#elContent.fillMessages();
+        this.#elContent.init();
     }
 
     #onWindowResize(event=null) {

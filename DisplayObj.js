@@ -66,6 +66,16 @@ export class DisplayObj extends HTMLElement {
         }
     }
 
+    set visible(value) {
+        value = !!value;
+        this.style.visibility = value ? "" : "hidden";
+    }
+
+
+    get visible() {
+        return this.style.visibility !== "hidden";
+    }
+
 
     #getSizeByMeasureHack(sideName) {
         if(this.parentElement) {
@@ -73,16 +83,12 @@ export class DisplayObj extends HTMLElement {
         }
         const oldVisibility = this.style.visibility || "";
         let result;
-        this.style.visibility = "hidden";
+        this.visible = false;
         document.body.append(this);
         result = this[sideName];
         this.style.visibility = oldVisibility;
         this.parentNode.removeChild(this);
         return result;
     }
-
-    /*append(...nodes) {
-        super.append(...nodes);
-    }*/
 
 }

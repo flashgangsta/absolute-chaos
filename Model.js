@@ -11,7 +11,8 @@ export class Model {
         this.#minChars = 10;
         //this.#maxChars = this.#message.length - this.#minChars;
         this.#maxChars = 250;
-        for(let i = 0, len = 1000; i < len; i++) {
+        const len = 400;
+        for(let i = 0; i < len; i++) {
             this.#data.push(this.#getTextPart());
         }
     }
@@ -23,7 +24,8 @@ export class Model {
         if([".", ",", ";", "?", "!"].includes(result.charAt(0))) {
             result = result.substring(1, result.length).trim();
         }
-        return result = result.charAt(0).toUpperCase() + result.substring(1, result.length);
+        result = result.charAt(0).toUpperCase() + result.substring(1, result.length);
+        return result;
     }
 
     get from() {
