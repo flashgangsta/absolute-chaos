@@ -7,7 +7,8 @@ export class Messages extends DisplayObj {
     #viewPort;
     #grid;
     #margin = 20;
-    #messageElsList = [];
+    #addedMessagesList = [];
+    #visibleMessagesList = [];
     #topHiddenElementIndex;
     #bottomHiddenElementIndex;
     #messageVerticalMargin = 2;
@@ -19,11 +20,10 @@ export class Messages extends DisplayObj {
     }
 
     init(viewPort, grid) {
-        console.log("init messages");
         const model = this.#model;
         this.#grid = grid;
-        let isFits = true;
-        let i = model.from;
+        let isFilled = true;
+        let i = 0;
         let lastMessageY = 0;
         this.#viewPort = viewPort;
 
@@ -33,15 +33,16 @@ export class Messages extends DisplayObj {
 
         let message;
 
-        while(isFits) {
+        while(isFilled) {
             message = new Message(model.getMessageAt(i), i);
             if(message) {
                 message.y = lastMessageY;
                 this.#setMessageWidth(message);
                 this.append(message);
-                this.#messageElsList.push(message);
+                this.#addedMessagesList.push(message);
+
                 if (lastMessageY > viewPort.height) {
-                    isFits = false;
+                    isFilled = false;
                     break;
                 }
 
@@ -50,11 +51,13 @@ export class Messages extends DisplayObj {
             }
         }
 
+        this.#visibleMessagesList = this.#addedMessagesList.slice(0, this.#addedMessagesList.length - 1);
         this.#bottomHiddenElementIndex = message.index;
         message.visible = false;
 
-        this.#updateSize();
+        this.#updateScrollContainerHeight();
     }
+
 
     #setMessageWidth(message) {
         const grid = this.#grid;
@@ -82,28 +85,28 @@ export class Messages extends DisplayObj {
 
     #addNextMessage() {
         const messageIndex = ++this.#bottomHiddenElementIndex;
-        const messageData = this.#model.getMessageAt(messageIndex);
-        let message = null;
-        if(messageData) {
-            message = new Message(messageData, messageIndex);
-            message.y = this.height + this.#messageVerticalMargin;
-            message.visible = false;
-            this.#setMessageWidth(message);
-            this.#messageElsList.push(message);
-            this.append(message);
-            console.log("append new message", this.#bottomHiddenElementIndex);
-        } else {
+        if (messageIndex >= this.#model.getMessagesTotal()) {
             this.#bottomHiddenElementIndex = null;
-            console.log("clear #bottomHiddenElementIndex. All data rendered.")
+            console.log("clear #bottomHiddenElementIndex. All messages added.")
+            return null;
         }
 
-        this.#updateSize();
+        const messageData = this.#model.getMessageAt(messageIndex);
+        let message = new Message(messageData, messageIndex);
+        message.y = this.height + this.#messageVerticalMargin;
+        message.visible = false;
+        this.#setMessageWidth(message);
+        this.#addedMessagesList.push(message);
+        this.append(message);
+        console.log("append new message", this.#bottomHiddenElementIndex);
+
+        this.#updateScrollContainerHeight();
 
         return message;
     }
 
 
-    #onScroll(event) {
+    /*#onScroll(event) {
         const deltaY = event.deltaY;
         const viewPort = this.#viewPort;
         let stopScrollY = viewPort.height - this.height;
@@ -124,8 +127,8 @@ export class Messages extends DisplayObj {
 
         //this.y -= deltaY;
 
-        /*for(let i = this.#topHiddenElementIndex + 1 || 0; i < this.#bottomHiddenElementIndex; i++) {
-            const message = this.#messageElsList[i];
+        /!*for(let i = this.#topHiddenElementIndex + 1 || 0; i < this.#bottomHiddenElementIndex; i++) {
+            const message = this.#addedMessagesList[i];
             console.log(i);
             let messageBoundsRelativeViewPort = message.getBounds(this.parentElement);
             let topHiddenElIndex = this.#topHiddenElementIndex;
@@ -151,7 +154,7 @@ export class Messages extends DisplayObj {
                         if(topHiddenElIndex <= 0) {
                             break;
                         }
-                        hiddenMessage = this.#messageElsList[topHiddenElIndex];
+                        hiddenMessage = this.#addedMessagesList[topHiddenElIndex];
                         hiddenMessageBoundsRelativeViewPort = hiddenMessage.getBounds(this.parentElement);
                     }
                 }
@@ -164,7 +167,7 @@ export class Messages extends DisplayObj {
                 }
 
                 //show bottom hidden message
-                let bottomHiddenMessage = this.#messageElsList[this.#bottomHiddenElementIndex];
+                let bottomHiddenMessage = this.#addedMessagesList[this.#bottomHiddenElementIndex];
                 if(bottomHiddenMessage && !bottomHiddenMessage.visible) {
                     bottomHiddenMessage.visible = true;
 
@@ -174,9 +177,9 @@ export class Messages extends DisplayObj {
             lastMessageBounds = message.getBounds();
 
         }
-        console.log("===========")*/
+        console.log("===========")*!/
 
-        this.#messageElsList.forEach((message) => {
+        this.#addedMessagesList.forEach((message) => {
             if(lastMessageBounds) {
                 message.y = lastMessageBounds.bottom + this.#messageVerticalMargin;
             }
@@ -200,7 +203,7 @@ export class Messages extends DisplayObj {
                         if(topHiddenElIndex <= 0) {
                             break;
                         }
-                        hiddenMessage = this.#messageElsList[topHiddenElIndex];
+                        hiddenMessage = this.#addedMessagesList[topHiddenElIndex];
                         hiddenMessageBoundsRelativeViewPort = hiddenMessage.getBounds(this.parentElement);
                     }
                 }
@@ -222,12 +225,12 @@ export class Messages extends DisplayObj {
                         bottomHiddenElIndex = this.#bottomHiddenElementIndex = hiddenMessage.index + 1;
                         console.log(`Show bottom: ${message.index}`);
 
-                        if(bottomHiddenElIndex >= this.#messageElsList.length) {
+                        if(bottomHiddenElIndex >= this.#addedMessagesList.length) {
                             console.log("break", bottomHiddenElIndex);
                             break;
                         }
 
-                        hiddenMessage = this.#messageElsList[bottomHiddenElIndex];
+                        hiddenMessage = this.#addedMessagesList[bottomHiddenElIndex];
                         hiddenMessageBoundsRelativeViewPort = hiddenMessage.getBounds(this.parentElement);
                     }
                 }
@@ -237,10 +240,124 @@ export class Messages extends DisplayObj {
 
         });
 
-        this.#updateSize();
+        this.#updateScrollContainerHeight();
+    }*/
+
+    #onScroll(event) {
+        const deltaY = event.deltaY;
+        const viewPort = this.#viewPort;
+        let stopScrollY = viewPort.height - this.height;
+        let targetY = this.y - deltaY;
+
+        if(targetY > 0) {
+            targetY = 0;
+        } else if(targetY < stopScrollY) {
+            targetY = stopScrollY;
+        }
+
+        this.y = targetY;
+
+        this.#resizeAndAlignVisibleMessages();
+
+        if(deltaY > 0) {
+            console.log("SCROLL BOTTOM");
+        } else if(deltaY < 0) {
+            console.log("SCROLL TOP");
+        }
+
+        this.#hideOutsideViewPortMessages();
+        this.#showInsideViewPortMessages();
+        this.#updateScrollContainerHeight();
     }
 
-    #updateSize() {
+    #resizeAndAlignVisibleMessages() {
+        const visibleMessagesList = this.#visibleMessagesList;
+        visibleMessagesList.forEach((message, i) => {
+            let lastResizedMessage = visibleMessagesList[i - 1];
+            this.#setMessageWidth(message);
+            if(lastResizedMessage) {
+                message.y = lastResizedMessage.getBounds(this).bottom + this.#messageVerticalMargin;
+            }
+        });
+    }
+
+
+    #hideOutsideViewPortMessages() {
+        //generate new view port visible elements and hide all outside
+        const visibleMessagesList = this.#visibleMessagesList;
+        let newVisibleMessagesList = [];
+        let firstVisibleTopMessage;
+
+        //find first top message in view port
+        for(let i = 0, len = visibleMessagesList.length; i < len; i++) {
+            let message = visibleMessagesList[i];
+            if(message.getBounds(this.parentElement).bottom > 0) {
+                firstVisibleTopMessage = i;
+                break;
+            }
+        }
+
+        //hide top messages outside viewport
+        let i = firstVisibleTopMessage - 1;
+        while(i >= 0) {
+            visibleMessagesList[i].visible = false;
+            console.log("Hide message " + i);
+            i--;
+        }
+
+        //check last message is in view port and hide if not
+        let lastMessageIndex = visibleMessagesList.length - 1;
+        let lastMessage = visibleMessagesList[lastMessageIndex];
+        let lastMessageBounds = lastMessage.getBounds(this.parentElement);
+
+        while(lastMessageBounds.y >= this.#viewPort.height) {
+            console.warn("last message outside view port", lastMessageIndex);
+            lastMessage.visible = false;
+            lastMessageIndex--;
+            lastMessage = visibleMessagesList[lastMessageIndex];
+            lastMessageBounds = lastMessage.getBounds(this.parentElement);
+        }
+
+        //build new visible elements list
+        newVisibleMessagesList = visibleMessagesList.slice(firstVisibleTopMessage, lastMessageIndex + 1); //remove top and bottom hidden elements
+
+        this.#visibleMessagesList = newVisibleMessagesList;
+    }
+
+
+    #showInsideViewPortMessages() {
+        const visibleMessagesList = this.#visibleMessagesList;
+        const addedElsList = this.#addedMessagesList;
+        const lastVisibleMessageIndex = visibleMessagesList.length - 1;
+        let nextMessageIndex = visibleMessagesList.length;
+        let isFilled = false;
+
+        while(!isFilled) {
+            if(nextMessageIndex > this.#addedMessagesList.length - 1) {
+                const newAddedMessage = new Message(this.#model.getMessageAt(nextMessageIndex), nextMessageIndex);
+                newAddedMessage.visible = false;
+                newAddedMessage.y = nextMessageBounds.y + this.#messageVerticalMargin;
+                this.append(newAddedMessage);
+                this.#addedMessagesList.push(newAddedMessage);
+            }
+            const nextMessage = this.#addedMessagesList[nextMessageIndex];
+            const nextMessageBounds = nextMessage.getBounds(this.parentElement);
+
+            if(nextMessageBounds.bottom <= this.#viewPort.height) {
+                nextMessageBounds.visible = true;
+                visibleMessagesList.push(nextMessage);
+                this.#setMessageWidth(nextMessage);
+            } else {
+                isFilled = true;
+                break;
+            }
+
+            nextMessageIndex++;
+        }
+    }
+
+
+    #updateScrollContainerHeight() {
         this.height = this.getBounds().height;
     }
 }
